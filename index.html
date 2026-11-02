@@ -240,6 +240,9 @@
       <p class="dash-empty">Angka wang disembunyikan secara lalai. Tetapkan PIN supaya PIN diminta sebelum angka ditunjukkan.</p>
       <button type="button" id="pinSetBtn">Tetapkan PIN</button>
       <button type="button" id="pinClearBtn" class="danger-btn hidden">Buang PIN</button>
+      <button type="button" id="bioSetBtn">Aktifkan Face ID / Touch ID</button>
+      <button type="button" id="bioClearBtn" class="danger-btn hidden">Matikan Face ID / Touch ID</button>
+      <p id="bioMsg" class="bj-msg"></p>
     </div>
 
   </section>
@@ -285,7 +288,7 @@
             <path d="M3 3l18 18"/>
           </svg>
         </button>
-      </div>
+     </div>
       <button type="submit" id="authSubmit">Log masuk</button>
       <p id="authMsg" class="bj-msg"></p>
       <button type="button" id="authSwitch" class="auth-link">Belum ada akaun? Daftar</button>
@@ -306,6 +309,7 @@
       </div>
     </form>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="chart.umd.min.js"></script>
     <script src="supabase-config.js"></script>
