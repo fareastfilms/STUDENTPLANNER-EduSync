@@ -21,7 +21,7 @@
   // Kalau belum disambung, app jalan macam biasa tanpa login
   if (!configured) return;
 
-  const sb = window.supabase.createClient(url, key);
+  const sb = window.sbClient || window.supabase.createClient(url, key);
   const redirect = location.origin + location.pathname;
 
   let mode = "login"; // login, signup, recover
