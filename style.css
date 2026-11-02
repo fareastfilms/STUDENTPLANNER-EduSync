@@ -1675,3 +1675,14 @@ body.private .dash-chart {
 .pin-actions button {
   margin-right: 0;
 }
+
+#syncStatus {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  #syncStatus {
+    flex-basis: 100%;
+  }
+}
