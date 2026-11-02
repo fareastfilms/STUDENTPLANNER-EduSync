@@ -9,6 +9,9 @@
   const cancelBtn = document.getElementById("pinCancel");
   const setBtn = document.getElementById("pinSetBtn");
   const clearBtn = document.getElementById("pinClearBtn");
+  const bioSet = document.getElementById("bioSetBtn");
+  const bioClear = document.getElementById("bioClearBtn");
+  const bioMsg = document.getElementById("bioMsg");
 
   if (!btn || !modal) return;
 
@@ -83,6 +86,57 @@
     return left > 0 ? left : 0;
   }
 
+    // ===== Face ID / Touch ID (passkey) =====
+  const BIO_KEY = "privacyBio";
+
+  function hasBio() {
+    return !!read(BIO_KEY);
+  }
+
+  function bioSupported() {
+    return !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+  }
+
+  function rand(n) {
+    return crypto.getRandomValues(new Uint8Array(n));
+  }
+
+  async function bioRegister() {
+    const emailEl = document.getElementById("userEmail");
+    const name = (emailEl && emailEl.textContent) || "pengguna";
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: rand(32),
+        rp: { name: "Student Planner" },
+        user: { id: rand(16), name: name, displayName: name },
+        pubKeyCredParams: [
+          { type: "public-key", alg: -7 },
+          { type: "public-key", alg: -257 }
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: "platform",
+          userVerification: "required",
+          residentKey: "preferred"
+        },
+        timeout: 60000
+      }
+    });
+    write(BIO_KEY, { id: toB64(cred.rawId) });
+  }
+
+  async function bioAuth() {
+    const saved = read(BIO_KEY);
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: rand(32),
+        allowCredentials: [{ type: "public-key", id: fromB64(saved.id), transports: ["internal"] }],
+        userVerification: "required",
+        timeout: 60000
+      }
+    });
+    return true;
+  }
+
   // ===== Sembunyi atau tunjuk angka =====
   function setPrivate(on) {
     document.body.classList.toggle("private", on);
@@ -104,6 +158,16 @@
     const pinned = hasPin();
     if (setBtn) setBtn.classList.toggle("hidden", pinned);
     if (clearBtn) clearBtn.classList.toggle("hidden", !pinned);
+
+    if (bioSet && bioClear) {
+      const on = hasBio();
+      bioSet.classList.toggle("hidden", on);
+      bioClear.classList.toggle("hidden", !on);
+      if (!bioSupported() && bioMsg) {
+        bioMsg.style.color = "var(--muted)";
+        bioMsg.textContent = "Face ID / Touch ID tak tersedia di pelayar atau alamat ini (perlukan https).";
+      }
+    }
   }
 
   // ===== Tetingkap PIN =====
@@ -198,19 +262,55 @@
     if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
   });
 
-  btn.addEventListener("click", function () {
+  btn.addEventListener("click", async function () {
     if (!document.body.classList.contains("private")) {
       setPrivate(true);
-    } else if (hasPin()) {
-      openModal("reveal");
-    } else {
-      setPrivate(false);
+      return;
     }
+
+    if (hasBio() && bioSupported()) {
+      try {
+        await bioAuth();
+        setPrivate(false);
+        return;
+      } catch (e) {
+        // dibatalkan atau gagal: cuba PIN kalau ada
+      }
+    }
+
+    if (hasPin()) openModal("reveal");
+    else if (!hasBio()) setPrivate(false);
   });
 
   if (setBtn) setBtn.addEventListener("click", function () { openModal("set"); });
   if (clearBtn) clearBtn.addEventListener("click", function () { openModal("clear"); });
 
+    if (bioSet) {
+    bioSet.addEventListener("click", async function () {
+      bioMsg.style.color = "var(--bad)";
+      if (!bioSupported()) {
+        bioMsg.textContent = "Pelayar atau alamat ini tak menyokong Face ID / Touch ID.";
+        return;
+      }
+      try {
+        await bioRegister();
+        bioMsg.style.color = "var(--ok)";
+        bioMsg.textContent = "Aktif. Ikon mata kini minta Face ID / Touch ID.";
+        refreshControls();
+      } catch (e) {
+        bioMsg.textContent = "Tak berjaya diaktifkan. Cuba lagi, atau guna PIN.";
+      }
+    });
+  }
+
+  if (bioClear) {
+    bioClear.addEventListener("click", function () {
+      remove(BIO_KEY);
+      bioMsg.textContent = "";
+      refreshControls();
+    });
+  }
+  
   // Sembunyi semula bila awak tinggalkan tab, atau log keluar
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) setPrivate(true);
