@@ -1,1 +1,0 @@
-# STUDENTPLANNER-EduSync
