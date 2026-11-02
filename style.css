@@ -1,0 +1,2053 @@
+/* Student Planner: "blue hour" theme, inspired by editing suites (timeline, timecode) */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  color-scheme: dark;
+  --bg: #141a26;
+  --surface: #1c2433;
+  --surface2: #243044;
+  --line: #2f3c52;
+  --text: #e8edf6;
+  --muted: #93a1b8;
+  --accent: #f0a640;
+  --accent-ink: #1a1305;
+  --accent-soft: rgba(240, 166, 64, 0.12);
+  --sky: #6fb3e0;
+  --ok: #5fcf8b;
+  --warn: #e8c24a;
+  --bad: #ef6a5e;
+  --bad-soft: rgba(239, 106, 94, 0.14);
+  --radius-panel: 14px;
+  --radius-item: 10px;
+  --radius-ctl: 8px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #eef2f7;
+    --surface: #ffffff;
+    --surface2: #eaf0f7;
+    --line: #d3dce8;
+    --text: #16202e;
+    --muted: #5d6b80;
+    --accent: #c9741a;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(201, 116, 26, 0.1);
+    --sky: #2f7fb8;
+    --ok: #1f8a4c;
+    --warn: #a8760a;
+    --bad: #c9382c;
+    --bad-soft: rgba(201, 56, 44, 0.1);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Bricolage Grotesque", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+  line-height: 1.55;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 6px 0 16px;
+}
+
+h1::before {
+  content: "";
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 10px;
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 26px 0 10px;
+}
+
+.panel > h2:first-child {
+  margin-top: 0;
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sky);
+  margin: 18px 0 8px;
+}
+
+p {
+  margin: 8px 0;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+li {
+  margin: 4px 0;
+}
+
+/* ===== Controls ===== */
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-ctl);
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+input[type="file"] {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-ctl);
+  padding: 10px 16px;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  background: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
+  filter: none;
+}
+
+.removeBtn {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  margin-right: 0;
+  font-weight: 500;
+}
+
+.removeBtn:hover {
+  background: var(--bad-soft);
+  color: var(--bad);
+  border-color: var(--bad);
+  filter: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===== Tabs: a timeline track with a playhead ===== */
+#tabs {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 0 8px;
+  margin-bottom: 18px;
+  background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 12px) bottom / 100% 5px no-repeat,
+    var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+#tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 14px 16px 10px;
+  margin: 0;
+  border-radius: 0;
+}
+
+.tab:hover {
+  background: transparent;
+  color: var(--text);
+  filter: none;
+}
+
+.tab.active,
+.tab.active:hover {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tab.active::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--accent);
+}
+
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+/* ===== Panels ===== */
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 20px;
+}
+
+/* ===== GPA ===== */
+.sem-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+#courses {
+  margin-bottom: 12px;
+}
+
+.course {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.course input[type="text"] {
+  flex: 1;
+}
+
+.credit {
+  width: 84px;
+}
+
+#result,
+#cgpa {
+  font-size: 1.3em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+#target {
+  width: 200px;
+  max-width: 100%;
+  margin-right: 8px;
+}
+
+#semSummary li,
+#targetResult li {
+  color: var(--muted);
+}
+
+#targetResult li {
+  color: var(--text);
+}
+
+/* ===== Study: timecode timer ===== */
+#timerMode {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 6px 0 0;
+}
+
+#timerDisplay {
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 64px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-item);
+  padding: 18px 10px;
+  margin: 10px 0 16px;
+}
+
+#studySubject {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+/* ===== Jadual ===== */
+.class-form,
+.task-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+#classSubject,
+#taskName {
+  flex: 1;
+  min-width: 160px;
+}
+
+.day-card {
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: var(--radius-item);
+  padding: 4px 14px;
+  margin-bottom: 10px;
+}
+
+.day-card h3 {
+  margin: 10px 0 6px;
+  color: var(--text);
+}
+
+.day-card.today {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.day-card.today h3 {
+  color: var(--accent);
+}
+
+.class-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+
+.class-line .removeBtn {
+  padding: 4px 9px;
+}
+
+#taskList {
+  list-style: none;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: var(--radius-item);
+  padding: 8px 12px;
+  margin: 0 0 8px;
+}
+
+.task-item.soon {
+  border-left-color: var(--warn);
+}
+
+.task-item.overdue {
+  border-left-color: var(--bad);
+  background: var(--bad-soft);
+}
+
+/* ===== Flashcard ===== */
+.fc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.fc-form button {
+  align-self: flex-start;
+}
+
+.fc-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+#fcCard {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 22px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-item);
+  font-size: 20px;
+  cursor: pointer;
+  margin: 8px 0 14px;
+}
+
+#fcCard.flipped {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.fc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.fc-actions button {
+  margin-right: 0;
+}
+
+/* ===== Bajet ===== */
+.bj-acc-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-item);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.bj-acc-name {
+  font-weight: 600;
+  flex: 1;
+  min-width: 110px;
+}
+
+.bj-acc-bal {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.bj-acc-bal.negative,
+.bj-line.negative {
+  color: var(--bad);
+}
+
+.bj-open {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.bj-open input {
+  width: 96px;
+  padding: 6px 8px;
+  margin-left: 4px;
+}
+
+.bj-acc-form,
+.bj-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 18px;
+}
+
+.bj-form {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+#bjDesc {
+  flex: 1;
+  min-width: 160px;
+}
+
+#bjAmount {
+  width: 110px;
+}
+
+.bj-lbl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.bj-month {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bj-line {
+  margin: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.bj-msg {
+  color: var(--bad);
+  min-height: 1em;
+  margin: 0 0 10px;
+}
+
+.task-item.bj-income {
+  border-left-color: var(--ok);
+}
+
+.task-item.bj-transfer {
+  border-left-color: var(--sky);
+}
+
+/* ===== Galeri ===== */
+.gl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gl-form button {
+  align-self: flex-start;
+}
+
+.gl-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+#glGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.gl-empty {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.gl-tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-ctl);
+  overflow: hidden;
+  background: var(--surface2);
+}
+
+.gl-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+
+.gl-tile:hover {
+  outline: 2px solid var(--accent);
+}
+
+.gl-tile .removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 2px 8px;
+  background: rgba(20, 26, 38, 0.75);
+  color: #fff;
+  border-color: transparent;
+}
+
+#glViewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 20, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+#glBig {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: var(--radius-ctl);
+}
+
+#glCaption {
+  color: #e8edf6;
+  margin-top: 10px;
+  text-align: center;
+}
+
+#glClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  margin: 0;
+  background: var(--bad);
+  color: #fff;
+}
+
+/* ===== Telefon ===== */
+@media (max-width: 600px) {
+  body {
+    padding: 12px 12px 48px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .panel.active {
+    padding: 16px;
+  }
+
+  /* 16px elak iPhone zum sendiri bila klik kotak */
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+
+  button {
+    min-height: 44px;
+  }
+
+  .removeBtn {
+    min-width: 44px;
+  }
+
+  .course {
+    flex-wrap: wrap;
+  }
+
+  .course input[type="text"] {
+    flex: 1 1 100%;
+  }
+
+  .course .credit,
+  .course .grade {
+    flex: 1;
+    width: auto;
+  }
+
+  #target {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .class-form,
+  .task-form,
+  .bj-form,
+  .bj-acc-form,
+  .fc-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .class-form > *,
+  .task-form > *,
+  .bj-form > *,
+  .bj-acc-form > *,
+  .fc-controls > * {
+    width: 100%;
+  }
+
+  #bjAmount {
+    width: 100%;
+  }
+
+  .bj-lbl {
+    justify-content: space-between;
+  }
+
+  .bj-lbl select {
+    flex: 1;
+  }
+
+  #timerDisplay {
+    font-size: 48px;
+  }
+
+  .task-item {
+    align-items: flex-start;
+  }
+}
+
+/* ===== Animasi ===== */
+
+/* Panel naik sedikit bila tukar tab */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panel.active {
+  animation: panel-in 0.25s ease-out;
+}
+
+/* Playhead jatuh, garis tab mengembang */
+@keyframes playhead-drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes track-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.tab.active::before {
+  animation: playhead-drop 0.25s ease-out;
+}
+
+.tab.active::after {
+  transform-origin: center;
+  animation: track-grow 0.3s ease-out;
+}
+
+/* Titik REC berdenyut perlahan */
+@keyframes rec-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+h1::before {
+  animation: rec-pulse 2.4s ease-in-out infinite;
+}
+
+/* Butang naik sedikit */
+button {
+  transition: filter 0.15s, transform 0.15s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.tab:hover {
+  transform: none;
+}
+
+/* Flashcard timbul bila dibalikkan */
+@keyframes card-pop {
+  from {
+    transform: scale(0.97);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+#fcCard.flipped {
+  animation: card-pop 0.2s ease-out;
+}
+
+/* Galeri */
+.gl-tile img {
+  transition: transform 0.25s ease;
+}
+
+.gl-tile:hover img {
+  transform: scale(1.06);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+#glViewer {
+  animation: fade-in 0.2s ease-out;
+}
+
+#glBig {
+  animation: zoom-in 0.25s ease-out;
+}
+
+/* Hormati tetapan "kurangkan gerakan" pada peranti */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ===== Liquid glass ===== */
+@property --hl {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+:root {
+  --blob1: rgba(70, 120, 200, 0.55);
+  --blob2: rgba(150, 90, 190, 0.45);
+  --blob3: rgba(240, 166, 64, 0.45);
+  --glass-bg: rgba(255, 255, 255, 0.07);
+  --glass-inner: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-hi: rgba(255, 255, 255, 0.28);
+  --glass-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --blob1: rgba(120, 170, 230, 0.55);
+    --blob2: rgba(200, 160, 230, 0.5);
+    --blob3: rgba(255, 190, 110, 0.55);
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-inner: rgba(255, 255, 255, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.8);
+    --glass-hi: rgba(255, 255, 255, 0.95);
+    --glass-shadow: 0 10px 30px rgba(40, 60, 100, 0.15);
+  }
+}
+
+/* Latar yang hanyut perlahan */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(35% 35% at 20% 25%, var(--blob1), transparent 70%),
+    radial-gradient(30% 30% at 80% 20%, var(--blob2), transparent 70%),
+    radial-gradient(40% 40% at 65% 85%, var(--blob3), transparent 70%);
+  filter: blur(20px);
+  animation: drift 28s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate3d(4%, 3%, 0) rotate(8deg) scale(1.08);
+  }
+}
+
+/* Panel utama: kaca kabur */
+.panel.active {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-hi), inset 0 -1px 0 rgba(0, 0, 0, 0.12), var(--glass-shadow);
+}
+
+/* Bar tab: kaca terapung */
+#tabs {
+  --mx: 50%;
+  --my: 0%;
+  top: 8px;
+  padding: 0 8px 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: radial-gradient(220px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--hl) * 0.18)), transparent 65%),
+    repeating-linear-gradient(90deg, var(--glass-border) 0 1px, transparent 1px 12px) bottom / 100% 5px no-repeat,
+    var(--glass-bg);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--glass-shadow);
+  transition: --hl 0.35s ease;
+}
+
+/* Item dalam panel: kaca nipis dengan kilauan */
+.panel.active,
+.day-card,
+.task-item,
+.bj-acc-card,
+#fcCard,
+#timerDisplay {
+  --mx: 50%;
+  --my: 0%;
+  transition: --hl 0.35s ease;
+}
+
+.panel.active,
+.day-card,
+.day-card.today,
+.task-item,
+.task-item.overdue,
+.bj-acc-card,
+#fcCard,
+#fcCard.flipped,
+#timerDisplay {
+  background-image: radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--hl) * 0.16)), transparent 65%);
+}
+
+.day-card,
+.task-item,
+.bj-acc-card,
+#fcCard,
+#timerDisplay {
+  background-color: var(--glass-inner);
+  border-color: var(--glass-border);
+}
+
+input,
+select,
+textarea {
+  background: var(--glass-inner);
+  border-color: var(--glass-border);
+}
+
+.removeBtn {
+  background: var(--glass-inner);
+}
+
+/* Butang: berkilat dan kenyal bila ditekan */
+button {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 6px 16px rgba(240, 166, 64, 0.28);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s;
+}
+
+button:hover {
+  transform: scale(1.04);
+}
+
+button:active {
+  transform: scale(0.94);
+  transition-duration: 0.1s;
+}
+
+.tab,
+.removeBtn,
+button:disabled,
+#glClose {
+  box-shadow: none;
+}
+
+/* Kalau browser tak sokong kaca kabur */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel.active,
+  #tabs {
+    background-color: var(--surface);
+  }
+}
+
+/* ===== Bar carian ===== */
+#searchWrap {
+  position: relative;
+  z-index: 30;
+  margin-bottom: 16px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border-radius: 14px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a1b8' stroke-width='2' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='M20 20l-3.5-3.5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: 14px center;
+  background-size: 17px;
+}
+
+#searchResults {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.sr-item {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.sr-item:hover,
+.sr-item:focus-visible {
+  background: var(--surface2);
+}
+
+.sr-tag {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.sr-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sr-text mark {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.sr-empty {
+  padding: 10px;
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ===== Skrin login ===== */
+#authScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 24px;
+}
+
+.auth-card h2 {
+  margin: 0 0 4px;
+}
+
+.auth-card button {
+  margin-right: 0;
+}
+
+.auth-card input[hidden] {
+  display: none;
+}
+
+.auth-link {
+  background: transparent;
+  color: var(--sky);
+  font-weight: 500;
+  padding: 6px;
+  box-shadow: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+  filter: none;
+}
+
+#userBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+#userBar button {
+  padding: 4px 12px;
+  margin-right: 0;
+}
+
+/* ===== Bar atas: tajuk di kiri, pengguna di kanan ===== */
+#topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 6px 0 16px;
+}
+
+#topBar h1 {
+  margin: 0;
+}
+
+#userBar {
+  margin: 0;
+  flex-wrap: nowrap;
+}
+
+#userEmail {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Skrin login: latar cecair ===== */
+#authScreen {
+  --px: 0;
+  --py: 0;
+  overflow-x: hidden;
+  isolation: isolate;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(111, 179, 224, 0.14), transparent 60%), var(--bg);
+}
+
+#authScreen::before,
+#authScreen::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  width: 60vmax;
+  height: 60vmax;
+  filter: blur(36px);
+  opacity: 0.8;
+  pointer-events: none;
+  will-change: transform, border-radius;
+  transition: translate 0.6s ease-out;
+}
+
+#authScreen::before {
+  top: -22vmax;
+  left: -18vmax;
+  background: linear-gradient(135deg, var(--blob3, rgba(240, 166, 64, 0.45)), var(--blob2, rgba(150, 90, 190, 0.45)));
+  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+  translate: calc(var(--px) * 60px) calc(var(--py) * 60px);
+  animation: liquid-a 20s ease-in-out infinite alternate;
+}
+
+#authScreen::after {
+  bottom: -24vmax;
+  right: -18vmax;
+  background: linear-gradient(135deg, var(--blob1, rgba(70, 120, 200, 0.55)), var(--sky));
+  border-radius: 58% 42% 37% 63% / 56% 59% 41% 44%;
+  translate: calc(var(--px) * -80px) calc(var(--py) * -80px);
+  animation: liquid-b 24s ease-in-out infinite alternate;
+}
+
+@keyframes liquid-a {
+  0% {
+    transform: rotate(0deg) scale(1);
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+  }
+  50% {
+    transform: rotate(40deg) scale(1.12);
+    border-radius: 60% 40% 45% 55% / 55% 60% 40% 45%;
+  }
+  100% {
+    transform: rotate(90deg) scale(0.95);
+    border-radius: 38% 62% 55% 45% / 62% 40% 60% 38%;
+  }
+}
+
+@keyframes liquid-b {
+  0% {
+    transform: rotate(0deg) scale(1);
+    border-radius: 58% 42% 37% 63% / 56% 59% 41% 44%;
+  }
+  50% {
+    transform: rotate(-35deg) scale(1.1);
+    border-radius: 40% 60% 55% 45% / 45% 40% 60% 55%;
+  }
+  100% {
+    transform: rotate(-80deg) scale(0.92);
+    border-radius: 62% 38% 45% 55% / 38% 62% 38% 62%;
+  }
+}
+
+/* Kad login: kaca dengan kilauan */
+.auth-card {
+  --mx: 50%;
+  --my: 0%;
+  gap: 12px;
+  background-color: var(--glass-bg, rgba(255, 255, 255, 0.07));
+  background-image: radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--hl, 0) * 0.16)), transparent 65%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
+  box-shadow: inset 0 1px 0 var(--glass-hi, rgba(255, 255, 255, 0.28)), 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: auth-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  transition: --hl 0.35s ease;
+}
+
+.auth-card::before {
+  content: "Student Planner";
+  padding-left: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  background: radial-gradient(circle, var(--accent) 0 5px, transparent 6px) left center / 12px 12px no-repeat;
+}
+
+.auth-card h2 {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.auth-card input {
+  background: var(--glass-inner, rgba(255, 255, 255, 0.06));
+  border-color: var(--glass-border, rgba(255, 255, 255, 0.16));
+}
+
+.auth-card input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+@keyframes auth-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  #authScreen::before,
+  #authScreen::after {
+    filter: blur(26px);
+  }
+}
+
+/* ===== Butang tunjuk kata laluan ===== */
+.pass-wrap {
+  position: relative;
+}
+
+.pass-wrap input {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.pass-wrap input::-ms-reveal {
+  display: none;
+}
+
+.pass-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  margin: -18px 0 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  border-radius: 8px;
+}
+
+.pass-toggle:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+  filter: none;
+}
+
+.pass-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pass-toggle .eye-off {
+  display: none;
+}
+
+.pass-toggle.on {
+  color: var(--accent);
+}
+
+.pass-toggle.on .eye-open {
+  display: none;
+}
+
+.pass-toggle.on .eye-off {
+  display: block;
+}
+
+/* ===== Zon bahaya (Bajet) ===== */
+.bj-danger {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.danger-btn {
+  background: transparent;
+  color: var(--bad);
+  border: 1px solid var(--bad);
+  box-shadow: none;
+}
+
+.danger-btn:hover {
+  background: var(--bad-soft);
+  filter: none;
+}
+
+/* ===== Dashboard (Utama) ===== */
+.dash-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.dash-hero h2 {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 2px 0 18px;
+}
+
+/* Empat angka dalam satu jalur, dipisahkan garis halus */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-item);
+  overflow: hidden;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--surface2);
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.stat-value.accent {
+  color: var(--accent);
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 28px;
+  margin-top: 8px;
+}
+
+.dash-sec {
+  border-top: 1px solid var(--line);
+  margin-top: 22px;
+  padding-top: 14px;
+}
+
+.dash-sec h3 {
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.dash-sub {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dash-line {
+  margin: 6px 0;
+}
+
+.dash-line strong {
+  color: var(--sky);
+  font-weight: 600;
+}
+
+#dashTasks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dash-empty {
+  color: var(--muted);
+  margin: 6px 0;
+}
+
+.dash-chart {
+  position: relative;
+  height: 260px;
+}
+
+.dash-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.dash-quick button {
+  margin-right: 0;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.dash-quick button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .dash-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-hero h2 {
+    font-size: 24px;
+  }
+
+  .dash-chart {
+    height: 240px;
+  }
+}
+
+/* ===== Lokasi kelas ===== */
+#classLocation {
+  min-width: 140px;
+  flex: 0 1 180px;
+}
+
+.class-loc {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.class-loc::before {
+  content: "Lokasi: ";
+}
+
+@media (max-width: 600px) {
+  #classLocation {
+    flex: none;
+  }
+}
+
+/* ===== Mod privasi ===== */
+body.private #stBalance,
+body.private #stSpend,
+body.private .bj-acc-bal,
+body.private .bj-open input,
+body.private #bjAccounts > .bj-line,
+body.private #bjSummary .bj-line,
+body.private #bjSummary li,
+body.private #bjList .task-item > span,
+body.private .dash-chart {
+  filter: blur(9px);
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  margin: 0 0 0 auto;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+  filter: none;
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-btn .eye-open {
+  display: none;
+}
+
+.icon-btn.shown {
+  color: var(--accent);
+}
+
+.icon-btn.shown .eye-open {
+  display: block;
+}
+
+.icon-btn.shown .eye-off {
+  display: none;
+}
+
+.bj-privacy {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+#pinModal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(8, 12, 20, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.pin-card {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 22px;
+}
+
+.pin-card h2 {
+  margin: 0 0 4px;
+}
+
+.pin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pin-actions button {
+  margin-right: 0;
+}
+
+#syncStatus {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  #syncStatus {
+    flex-basis: 100%;
+  }
+}
+
+/* ===== Halaman pendaratan: kaca, latar cecair, orb hitam ===== */
+#landing {
+  --px: 0;
+  --py: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  overflow-y: auto;
+  overflow-x: hidden;
+  isolation: isolate;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(111, 179, 224, 0.14), transparent 60%), var(--bg);
+}
+
+#landing::before,
+#landing::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  width: 60vmax;
+  height: 60vmax;
+  filter: blur(36px);
+  opacity: 0.8;
+  pointer-events: none;
+  will-change: transform;
+  transition: translate 0.6s ease-out;
+}
+
+#landing::before {
+  top: -22vmax;
+  left: -18vmax;
+  background: linear-gradient(135deg, var(--blob3, rgba(240, 166, 64, 0.45)), var(--blob2, rgba(150, 90, 190, 0.45)));
+  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+  translate: calc(var(--px) * 60px) calc(var(--py) * 60px);
+  animation: ld-liquid-a 20s ease-in-out infinite alternate;
+}
+
+#landing::after {
+  bottom: -24vmax;
+  right: -18vmax;
+  background: linear-gradient(135deg, var(--blob1, rgba(70, 120, 200, 0.55)), var(--sky));
+  border-radius: 58% 42% 37% 63% / 56% 59% 41% 44%;
+  translate: calc(var(--px) * -80px) calc(var(--py) * -80px);
+  animation: ld-liquid-b 24s ease-in-out infinite alternate;
+}
+
+@keyframes ld-liquid-a {
+  0% {
+    transform: rotate(0deg) scale(1);
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+  }
+  50% {
+    transform: rotate(40deg) scale(1.12);
+    border-radius: 60% 40% 45% 55% / 55% 60% 40% 45%;
+  }
+  100% {
+    transform: rotate(90deg) scale(0.95);
+    border-radius: 38% 62% 55% 45% / 62% 40% 60% 38%;
+  }
+}
+
+@keyframes ld-liquid-b {
+  0% {
+    transform: rotate(0deg) scale(1);
+    border-radius: 58% 42% 37% 63% / 56% 59% 41% 44%;
+  }
+  50% {
+    transform: rotate(-35deg) scale(1.1);
+    border-radius: 40% 60% 55% 45% / 45% 40% 60% 55%;
+  }
+  100% {
+    transform: rotate(-80deg) scale(0.92);
+    border-radius: 62% 38% 45% 55% / 38% 62% 38% 62%;
+  }
+}
+
+#landing > * {
+  width: min(1080px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+#landing button {
+  margin-right: 0;
+}
+
+/* Bar atas: kaca dengan pembaris timeline, sama macam bar tab */
+.ld-nav {
+  position: sticky;
+  top: 14px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 14px 16px 18px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
+  border-radius: 18px;
+  background: repeating-linear-gradient(90deg, var(--glass-border, rgba(255, 255, 255, 0.16)) 0 1px, transparent 1px 12px) bottom / 100% 5px no-repeat,
+    var(--glass-bg, rgba(255, 255, 255, 0.07));
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--glass-hi, rgba(255, 255, 255, 0.28)), var(--glass-shadow, 0 10px 34px rgba(0, 0, 0, 0.28));
+}
+
+.ld-brand {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+
+.ld-brand::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.ld-nav-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ld-ghost {
+  background: var(--glass-inner, rgba(255, 255, 255, 0.06));
+  color: var(--text);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
+  box-shadow: none;
+}
+
+.ld-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Hero */
+.ld-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: 32px;
+  min-height: min(72vh, 660px);
+  padding: 24px 0 56px;
+}
+
+.ld-title {
+  font-size: clamp(40px, 6.5vw, 72px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.03em;
+  margin: 0 0 18px;
+}
+
+.ld-sub {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 46ch;
+  margin: 0 0 26px;
+}
+
+.ld-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ld-cta button {
+  padding: 14px 22px;
+  font-size: 16px;
+}
+
+.ld-points {
+  list-style: none;
+  padding: 0;
+  margin: 34px 0 0;
+}
+
+.ld-points li {
+  margin: 8px 0;
+}
+
+.ld-points li::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  background: var(--accent);
+  margin-right: 12px;
+  vertical-align: middle;
+}
+
+/* ===== Orb hitam dengan pendar cecair ===== */
+.ld-visual {
+  --ox: 0;
+  --oy: 0;
+  --sx: 35%;
+  --sy: 28%;
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+}
+
+.ld-svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Kabus warna lembut di belakang */
+.ld-halo {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #f0a640, #3b82f6);
+  filter: blur(70px);
+  opacity: 0.4;
+  animation: ld-spin 26s linear infinite;
+}
+
+@keyframes ld-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Gumpalan yang bercantum seperti cecair */
+.ld-goo {
+  position: absolute;
+  inset: -12%;
+  filter: url(#goo) blur(10px);
+}
+
+.ld-blob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.ld-blob.b1 {
+  width: 46%;
+  height: 46%;
+  margin: -23% 0 0 -23%;
+  background: #3b82f6;
+}
+
+.ld-blob.b2 {
+  width: 40%;
+  height: 40%;
+  margin: -20% 0 0 -20%;
+  background: #f0a640;
+}
+
+.ld-blob.b3 {
+  width: 42%;
+  height: 42%;
+  margin: -21% 0 0 -21%;
+  background: #ec4899;
+}
+
+.ld-blob.b4 {
+  width: 38%;
+  height: 38%;
+  margin: -19% 0 0 -19%;
+  background: #8b5cf6;
+}
+
+.ld-blob.b5 {
+  width: 26%;
+  height: 26%;
+  margin: -13% 0 0 -13%;
+  background: #38bdf8;
+}
+
+/* Bulatan hitam */
+.ld-orb2 {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  width: 56%;
+  aspect-ratio: 1 / 1;
+  translate: calc(-50% + var(--ox) * 1px) calc(-50% + var(--oy) * 1px);
+  border-radius: 50%;
+  background: radial-gradient(circle at var(--sx) var(--sy), #232838 0%, #0a0c14 38%, #000 72%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 -12px 30px rgba(0, 0, 0, 0.85),
+    inset 0 8px 24px rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
+.ld-orb2::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at var(--sx) var(--sy), rgba(255, 255, 255, 0.32), transparent 24%);
+  mix-blend-mode: screen;
+}
+
+/* Kad ciri: kaca */
+.ld-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  padding: 8px 0 40px;
+}
+
+.ld-feat {
+  padding: 18px 18px 20px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
+  border-radius: var(--radius-item);
+  background: var(--glass-inner, rgba(255, 255, 255, 0.06));
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--glass-hi, rgba(255, 255, 255, 0.28));
+}
+
+.ld-feat h3 {
+  color: var(--text);
+  font-size: 17px;
+  margin: 0 0 6px;
+}
+
+.ld-feat p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.ld-foot {
+  padding: 22px 0 48px;
+  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 800px) {
+  .ld-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding-top: 8px;
+  }
+
+  .ld-visual {
+    max-width: 320px;
+  }
+
+  .ld-sub {
+    font-size: 16px;
+  }
+
+  .ld-goo {
+    filter: url(#goo) blur(6px);
+  }
+
+  .ld-halo {
+    filter: blur(50px);
+  }
+}
