@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="topBar">
+    <h1>Student Planner</h1>
+    <button type="button" id="privacyBtn" class="icon-btn" aria-pressed="false" aria-label="Tunjuk angka wang" title="Tunjuk angka wang">
+      <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M3 3l18 18"/>
+      </svg>
+    </button>
+
+    <div id="userBar" class="hidden">
+      <span id="userEmail"></span>
+      <button id="logoutBtn">Log keluar</button>
+    </div>
+  </header>
+
+  <nav id="tabs">
+    <button class="tab active" data-tab="dashboard">Utama</button>
+    <button class="tab" data-tab="gpa">GPA</button>
+    <button class="tab" data-tab="jadual">Jadual</button>
+    <button class="tab" data-tab="study">Study</button>
+    <button class="tab" data-tab="flashcard">Flashcard</button>
+    <button class="tab" data-tab="bajet">Bajet</button>
+    <button class="tab" data-tab="galeri">Galeri</button>
+  </nav>
+  
+  <div id="searchWrap">
+    <input type="search" id="searchInput" placeholder="Cari subjek, kelas, tugasan, kad, bajet...">
+    <div id="searchResults" class="hidden"></div>
+  </div>
+  
+    <!-- TAB UTAMA -->
+  <section id="dashboard" class="panel active">
+    <div class="dash-hero">
+      <p id="dashDate" class="dash-date"></p>
+      <h2 id="dashGreeting">Selamat datang</h2>
+    </div>
+
+    <div class="dash-stats">
+      <div class="stat">
+        <span class="stat-label" id="stGpaLabel">GPA semester</span>
+        <span class="stat-value accent" id="stGpa">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">CGPA</span>
+        <span class="stat-value accent" id="stCgpa">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Baki semua akaun</span>
+        <span class="stat-value" id="stBalance">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Belanja bulan ini</span>
+        <span class="stat-value" id="stSpend">-</span>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-sec">
+        <h3>Hari ini <span id="dashSem" class="dash-sub"></span></h3>
+        <div id="dashToday"></div>
+      </div>
+      <div class="dash-sec">
+        <h3>Tugasan 7 hari ke depan</h3>
+        <ul id="dashTasks"></ul>
+      </div>
+    </div>
+
+    <div class="dash-sec">
+      <h3>Belanja bulan ini ikut kategori</h3>
+      <div class="dash-chart"><canvas id="chartSpend"></canvas></div>
+      <p id="chartMsg" class="dash-empty hidden"></p>
+    </div>
+
+    <div class="dash-quick">
+      <button type="button" data-go="bajet">Tambah belanja</button>
+      <button type="button" data-go="study">Mula timer</button>
+      <button type="button" data-go="flashcard">Ulang kaji kad</button>
+    </div>
+  </section>
+
+  <!-- TAB GPA -->
+  <section id="gpa" class="panel">
+    <div class="sem-bar">
+      <label for="gpaSemSelect">Semester:</label>
+      <select id="gpaSemSelect"></select>
+    </div>
+
+    <div id="courses"></div>
+    <button id="addBtn">Tambah subjek</button>
+
+    <h2>GPA Semester: <span id="result">-</span></h2>
+    <h2>CGPA: <span id="cgpa">-</span></h2>
+    <div id="semSummary"></div>
+
+    <h2>Mod Sasaran</h2>
+    <input type="number" id="target" placeholder="Target GPA" step="0.01" min="0" max="4">
+    <button id="targetBtn">Semak sasaran</button>
+    <div id="targetResult"></div>
+  </section>
+
+  <!-- TAB LAIN (kosong dulu) -->
+  <section id="jadual" class="panel">
+    <div class="sem-bar">
+      <label for="semSelect">Semester:</label>
+      <select id="semSelect"></select>
+    </div>
+
+    <h2>Jadual Kelas</h2>
+    <div class="class-form">
+      <select id="classDay">
+        <option value="0">Ahad</option>
+        <option value="1">Isnin</option>
+        <option value="2">Selasa</option>
+        <option value="3">Rabu</option>
+        <option value="4">Khamis</option>
+        <option value="5">Jumaat</option>
+        <option value="6">Sabtu</option>
+      </select>
+      <input type="text" id="classTime" placeholder="Masa (cth 9-11 pagi)">
+      <input type="text" id="classSubject" placeholder="Subjek">
+      <input type="text" id="classLocation" placeholder="Lokasi (cth Makmal 3)">
+      <button id="addClassBtn">Tambah kelas</button>
+    </div>
+    <div id="timetable"></div>
+
+    <h2>Tugasan dan Tarikh Akhir</h2>
+    <div class="task-form">
+      <input type="text" id="taskName" placeholder="Nama tugasan atau test">
+      <input type="date" id="taskDate">
+      <button id="addTaskBtn">Tambah</button>
+    </div>
+    <ul id="taskList"></ul>
+    </section>
+  
+    <section id="study" class="panel">
+    <h2>Study Timer</h2>
+    <input type="text" id="studySubject" placeholder="Subjek yang dipelajari">
+    <p id="timerMode">Fokus</p>
+    <div id="timerDisplay">25:00</div>
+    <button id="startBtn">Mula</button>
+    <button id="pauseBtn">Jeda</button>
+    <button id="resetBtn">Reset</button>
+
+    <h2>Jumlah masa belajar</h2>
+    <ul id="studyLog"></ul>
+    </section>
+
+  <section id="flashcard" class="panel">
+    <h2>Flashcard</h2>
+
+    <div class="fc-form">
+      <input type="text" id="fcSubject" placeholder="Subjek (cth Data Structure)">
+      <input type="text" id="fcQuestion" placeholder="Soalan">
+      <textarea id="fcAnswer" placeholder="Jawapan" rows="3"></textarea>
+      <button id="fcAddBtn">Tambah kad</button>
+    </div>
+
+    <div class="fc-controls">
+      <select id="fcFilter"></select>
+      <button id="fcStartBtn">Mula ulang kaji</button>
+    </div>
+
+    <div id="fcStudy" class="hidden">
+      <p id="fcProgress"></p>
+      <div id="fcCard"></div>
+      <div class="fc-actions">
+        <button id="fcKnowBtn">Tahu</button>
+        <button id="fcNotBtn">Belum tahu</button>
+        <button id="fcStopBtn">Tamat</button>
+      </div>
+    </div>
+
+    <h2>Senarai kad</h2>
+    <ul id="fcList"></ul>
+  </section>
+
+    <section id="bajet" class="panel">
+    <h2>Bajet</h2>
+
+    <h3>Akaun</h3>
+    <div id="bjAccounts"></div>
+    <div class="bj-acc-form">
+      <input type="text" id="bjAccName" placeholder="Nama akaun baharu">
+      <input type="number" id="bjAccOpen" placeholder="Baki awal RM" step="0.01">
+      <button id="bjAccAddBtn">Tambah akaun</button>
+    </div>
+
+    <h3>Rekod transaksi</h3>
+    <div class="bj-form">
+      <select id="bjType">
+        <option value="expense">Belanja</option>
+        <option value="income">Pendapatan</option>
+        <option value="transfer">Pindah duit</option>
+      </select>
+      <input type="text" id="bjDesc" placeholder="Keterangan (cth makan tengah hari)">
+      <input type="number" id="bjAmount" placeholder="RM" step="0.01" min="0">
+      <label class="bj-lbl"><span id="bjFromText">Akaun</span> <select id="bjAccount"></select></label>
+      <label id="bjToWrap" class="bj-lbl hidden">Ke akaun <select id="bjToAccount"></select></label>
+      <label id="bjCatWrap" class="bj-lbl">Kategori
+        <select id="bjCategory">
+          <option>Makanan</option>
+          <option>Pengangkutan</option>
+          <option>Pelajaran</option>
+          <option>Hiburan</option>
+          <option>Lain-lain</option>
+        </select>
+      </label>
+      <input type="date" id="bjDate">
+      <button id="bjAddBtn">Tambah</button>
+    </div>
+    <p id="bjMsg" class="bj-msg"></p>
+
+    <div class="bj-month">
+      <label for="bjMonth">Bulan:</label>
+      <input type="month" id="bjMonth">
+    </div>
+
+    <div id="bjSummary"></div>
+    <ul id="bjList"></ul>
+    <div class="bj-danger">
+      <button type="button" id="bjResetBtn" class="danger-btn">Reset semua data bajet</button>
+    </div>
+
+    <div class="bj-privacy">
+      <h3>Privasi</h3>
+      <p class="dash-empty">Angka wang disembunyikan secara lalai. Tetapkan PIN supaya PIN diminta sebelum angka ditunjukkan.</p>
+      <button type="button" id="pinSetBtn">Tetapkan PIN</button>
+      <button type="button" id="pinClearBtn" class="danger-btn hidden">Buang PIN</button>
+    </div>
+
+  </section>
+
+  <section id="galeri" class="panel">
+    <h2>Galeri</h2>
+
+    <div class="gl-form">
+      <input type="text" id="glAlbum" placeholder="Nama event / album (cth Majlis Konvokesyen)">
+      <input type="file" id="glFiles" accept="image/*" multiple>
+      <button id="glAddBtn">Tambah gambar</button>
+    </div>
+    <p id="glMsg" class="bj-msg"></p>
+
+    <div class="gl-controls">
+      <label for="glFilter">Album:</label>
+      <select id="glFilter"></select>
+    </div>
+
+    <div id="glGrid"></div>
+
+    <div id="glViewer" class="hidden">
+      <button id="glClose">✕</button>
+      <img id="glBig" alt="">
+      <p id="glCaption"></p>
+    </div>
+  </section>
+
+    <div id="authScreen" class="hidden">
+    <form id="authForm" class="auth-card">
+      <h2 id="authTitle">Log masuk</h2>
+      <input type="email" id="authEmail" placeholder="Emel" autocomplete="email" required>
+      <div class="pass-wrap">
+        <input type="password" id="authPass" placeholder="Kata laluan (minimum 8 aksara)" autocomplete="current-password" minlength="8" required>
+        <button type="button" id="passToggle" class="pass-toggle" aria-label="Tunjuk kata laluan" aria-pressed="false">
+          <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M3 3l18 18"/>
+          </svg>
+        </button>
+      </div>
+      <button type="submit" id="authSubmit">Log masuk</button>
+      <p id="authMsg" class="bj-msg"></p>
+      <button type="button" id="authSwitch" class="auth-link">Belum ada akaun? Daftar</button>
+      <button type="button" id="authForgot" class="auth-link">Lupa kata laluan</button>
+      <button type="button" id="authSkip" class="auth-link">Guna tanpa akaun dulu</button>
+    </form>
+    </div>
+    
+    <div id="pinModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+    <form id="pinForm" class="pin-card">
+      <h2 id="pinTitle">Masukkan PIN</h2>
+      <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="PIN">
+      <input type="password" id="pinInput2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="Ulang PIN" class="hidden">
+      <p id="pinMsg" class="bj-msg"></p>
+      <div class="pin-actions">
+        <button type="submit">Sahkan</button>
+        <button type="button" id="pinCancel" class="auth-link">Batal</button>
+      </div>
+    </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="chart.umd.min.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="modules/gpa.js"></script>
+    <script src="modules/study.js"></script>
+    <script src="modules/jadual.js"></script>
+    <script src="modules/flashcard.js"></script>
+    <script src="modules/bajet.js"></script>
+    <script src="modules/galeri.js"></script>
+    <script src="modules/dashboard.js"></script>
+    <script src="modules/search.js"></script>
+    <script src="modules/auth.js"></script>
+    <script src="modules/privacy.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
